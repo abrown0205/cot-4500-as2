@@ -88,7 +88,64 @@ def hermiteInterpolation(xPoints, yPoints, derivs):
 
     return applyDivDif(matrix)
 
-def cubicSplineInterpolation():
+def cubicSplineInterpolation(xPoints, yPoints):
+    n = len(xPoints)
+    hVals = np.zeros(n-1)
+    alphaVals = np.zeros(n)
+    lVals = np.zeros(n)
+    muVals = np.zeros(n)
+    zVals = np.zeros(n)
+
+    matrix = np.zeros((n, n))
+    xVector = np.zeros(n)
+    bVector = np.zeros(n)
+    n -= 1
+
+    for i in range(0, n):
+        hVals[i] = xPoints[i+1] - xPoints[i]
+
+    for i in range(1, n):
+        alphaVals[i] = ((3/hVals[i])*(yPoints[i+1]-yPoints[i])) - ((3/hVals[i-1])*(yPoints[i]-yPoints[i-1]))
+
+    lVals[0] = 1
+
+    for i in range(1, n):
+        lVals[i] = 2*(xPoints[i+1]-xPoints[i-1]) - hVals[i-1]*muVals[i-1]
+        muVals[i] = hVals[i] / lVals[i]
+        zVals[i] = (alphaVals[i] - hVals[i-1]*zVals[i-1]) / lVals[i]
+
+    lVals[n] = 1
+
+    matrix[0][0] = 1
+    for i in range(1, n):
+        for j in range(i-1, i+2):
+            if j < i:
+                if j-2 < 0:
+                    matrix[i][j] = hVals[0]
+                else:
+                    matrix[i][j] = hVals[j-2]
+            elif j == i:
+                if j-1 < 0:
+                    matrix[i][j] = 2*(hVals[0] + hVals[0])
+                if j-2 < 0:
+                    matrix[i][j] = 2*(hVals[0] + hVals[j-1])
+                else:
+                    matrix[i][j] = 2*(hVals[j-1] + hVals[j])
+            else:
+                matrix[i][j] = hVals[j-1]
+    matrix[n][n] = 1
+
+    for j in range(n-1, 0, -1):
+        xVector[j] = zVals[j] - muVals[j]*xVector[j+1]
+
+    for i in range(1, n):
+        bVector[i] = ((3/hVals[i-1])*(xPoints[i]-xPoints[i-1])) - ((3/hVals[i-1])*(xPoints[i+1]-xPoints[i]))
+
+
+    print(matrix, end="\n\n")
+    print(bVector, end="\n\n")
+    print(xVector, end="\n\n")
+
 
 
 if __name__ == "__main__":
@@ -132,3 +189,4 @@ if __name__ == "__main__":
     # Question 5
     xPoints = [2, 5, 8, 10]
     yPoints = [3, 5, 7, 9]
+    cubicSplineInterpolation(xPoints, yPoints)
